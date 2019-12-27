@@ -1,23 +1,5 @@
 # manage
 
-## Project setup
-```
-npm install
-```
-
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
-
 基于 VUE + VUEX + VUE Router + Element UI的一套基础框架
 ```
 - public  打包输出目录
