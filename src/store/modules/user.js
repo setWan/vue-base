@@ -4,11 +4,15 @@ import { getToken, setToken, removeToken } from '@/utils/auth'
 export default {
   namespaced: true,
   state: {
-    roles: []
+    roles: [],
+    test: 1
   },
   mutations: {
     ROLES: (state, arr) => {
       state.roles = [...arr]
+    },
+    CHANGE_TEST:  (state, num) => {
+      state.test += num
     }
   },
   actions: {
@@ -22,6 +26,9 @@ export default {
         // reject(error)
         // })
       })
+    },
+    changeTest ({ commit }, num) {
+      commit('CHANGE_TEST', num)
     }
   }
 }
