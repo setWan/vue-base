@@ -270,6 +270,24 @@ export function debounce (func, wait, immediate) {
 }
 
 /**
+ * 节流函数
+ * @param {Function} func 
+ * @param {number} wait 
+ */
+export function throttle (func, wait) {
+  var previous = 0;
+  return function () {
+    var self = this;
+    var args = arguments;
+    var now = +new Date();// +new Date(); 将会调用Date原型上的valueOf方法
+    if (now - previous > wait) {
+      func.apply(self, args);
+      previous = now
+    }
+  }
+}
+
+/**
  * 深拷贝
  * @param {Object} source
  * @returns {Object}
