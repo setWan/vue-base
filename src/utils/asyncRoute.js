@@ -1,5 +1,5 @@
 import route from '@/router'
-const _import = require('@/router/_import_' + process.env.VUE_APP_ENV + '.js')
+const _import = require('@/router/_import_' + process.env.NODE_ENV + '.js')
 
 function filterAsyncRoutes (routes) {
   const res = []

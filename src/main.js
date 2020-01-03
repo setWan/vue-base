@@ -7,7 +7,8 @@ import './permission'
 import './style/index.scss'
 
 import ElementUI from 'element-ui'
-import 'element-ui/lib/theme-chalk/index.css'
+// import 'element-ui/lib/theme-chalk/index.css'
+import '@/my-theme/element-variables.scss'
 
 import * as filters from './filters' // global filters
 

@@ -2,6 +2,9 @@ const path = require('path')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 // const env = require('dotenv').config()
 
+const ThemeColorReplacer = require('webpack-theme-color-replacer')
+const forElementUI = require('webpack-theme-color-replacer/forElementUI')
+
 module.exports = {
   // 当运行 vue-cli-service build 时生成的生产环境构建文件的目录。注意目标目录在构建之前会被清除
   outputDir: 'public',
@@ -40,7 +43,30 @@ module.exports = {
           to: 'static',
           ignore: ['.*']
         }
-      ])
+      ]),
+      //生成仅包含颜色的替换样式（主题色等）
+      new ThemeColorReplacer({
+        fileName: 'static/css/theme-colors.[hash:8].css',
+        matchColors: [
+          ...forElementUI.getElementUISeries('#FF6800'),  //element-ui主色系列
+          // '#FF6800',
+          // '255,104,0,0.65',  //自定义颜色
+          // '255,104,0,0.85',
+          // '255,104,0,0.07',
+          // '255,104,0,0.05',
+          // '255,104,0,0.1'
+        ],
+        // resolveCss (resultCss) {
+        //   console.log('resultCss----->', resultCss)
+        //   return resultCss
+        // },
+        changeSelector: forElementUI.changeSelector,
+        isJsUgly: process.env.NODE_ENV !== 'development',
+        // injectCss: false,
+        // resolveCss(resultCss) { // optional. Resolve result css code as you wish.
+        //     return resultCss + youCssCode
+        // }
+      })
     ],
     externals: {
     }

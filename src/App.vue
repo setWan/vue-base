@@ -8,6 +8,7 @@
 </template>
 
 <script>
+import { initThemeColor } from '@/utils/changeColor'
 export default {
   data () {
     return {
@@ -16,8 +17,8 @@ export default {
   },
   mounted () {
     this.$nextTick(() => {
-      console.log(document.styleSheets.length)
       this.originalStylesheetCount = document.styleSheets.length
+      initThemeColor()
     });
   },
   computed: {
