@@ -28,6 +28,9 @@
         <slot name="tableOperation"></slot>
       </el-table>
     </div>
+    <pagination :page="page"
+                :page-size="pageSize"
+                :page-count="pageCount"></pagination>
   </div>
 </template>
 
@@ -64,6 +67,27 @@ export default {
     hasOper: {
       type: Boolean,
       default: false
+    },
+    /**
+     * 当前页
+     */
+    page: {
+      type: Number,
+      default: 1
+    },
+    /**
+     * 每页显示多少条
+     */
+    pageSize: {
+      type: Number,
+      default: 10
+    },
+    /**
+     * 总数据条数
+     */
+    pageCount: {
+      type: Number,
+      default: 0
     }
   },
   data () {

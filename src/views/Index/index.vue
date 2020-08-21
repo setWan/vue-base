@@ -55,7 +55,10 @@
     <div>
       <public-table :data-list="dataList"
                     :head-list="headList"
-                    :has-oper="true">
+                    :has-oper="true"
+                    :page="1"
+                    :page-size="10"
+                    :page-count="100">
         <template v-slot:operationRight>
           <el-button type="text">123</el-button>
         </template>
@@ -66,9 +69,6 @@
           </el-table-column>
         </template>
       </public-table>
-      <pagination :page="1"
-                  :page-size="10"
-                  :page-count="100"></pagination>
     </div>
   </div>
 </template>
