@@ -52,6 +52,24 @@
                      name="fourth">定时任务补偿</el-tab-pane>
       </el-tabs>
     </div>
+    <div>
+      <public-table :data-list="dataList"
+                    :head-list="headList"
+                    :has-oper="true">
+        <template v-slot:operationRight>
+          <el-button type="text">123</el-button>
+        </template>
+        <template v-slot:tableOperation>
+          <el-table-column label="操作"
+                           width="100">
+            <el-button type="text">删除</el-button>
+          </el-table-column>
+        </template>
+      </public-table>
+      <pagination :page="1"
+                  :page-size="10"
+                  :page-count="100"></pagination>
+    </div>
   </div>
 </template>
 
@@ -62,7 +80,28 @@ export default {
   data () {
     return {
       activeName: 'second',
-      ipAddres: ''
+      ipAddres: '',
+      dataList: [
+        {
+          name: 'miss',
+          phone: '1221',
+          address: '北京市'
+        }
+      ],
+      headList: [
+        {
+          prop: 'name',
+          label: '用户名'
+        },
+        {
+          prop: 'phone',
+          label: '电话'
+        },
+        {
+          prop: 'address',
+          label: '地址'
+        }
+      ]
     };
   },
   components: {
