@@ -17,20 +17,42 @@
     <div class="table-container">
       <el-table :data="dataList">
         <template v-for="column in tableHeader">
-          <el-table-column :key="column.key || column.prop"
+          <el-table-column v-if="column.prop === 'opertion'"
+                           :label="column.label"
+                           :key="column.key || column.prop"
+                           :width="column.width"
+                           :fixed="column.fixed">
+            <template v-slot="scoped">
+              <slot name="tableOperation"
+                    v-bind:row="scoped.row"></slot>
+            </template>
+          </el-table-column>
+          <el-table-column v-else-if="column.type === 'index'"
+                           :key="column.key || column.prop"
+                           :prop="column.prop"
+                           :label="column.label"
+                           :width="column.width"
+                           :fixed="column.fixed"
+                           :type="column.type"
+                           :index="column.indexAccum ? indexMethod : null">
+          </el-table-column>
+          <el-table-column v-else
+                           :key="column.key || column.prop"
                            :prop="column.prop"
                            :label="column.label"
                            :width="column.width"
                            :formatter="column.formatter"
-                           :sortable="column.sortable">
+                           :sortable="column.sortable"
+                           :fixed="column.fixed">
           </el-table-column>
         </template>
-        <slot name="tableOperation"></slot>
       </el-table>
     </div>
     <pagination :page="page"
                 :page-size="pageSize"
-                :page-count="pageCount"></pagination>
+                :page-count="pageCount"
+                @changePage="changePage"
+                @changePageSize="changePageSize"></pagination>
   </div>
 </template>
 
@@ -109,7 +131,18 @@ export default {
     slots () {
       return this.$scopedSlots
     }
-  }
+  },
+  methods: {
+    indexMethod (index) {
+      return (this.page - 1) * this.pageSize + index + 1
+    },
+    changePage (page) {
+      this.$emit('changePage', page)
+    },
+    changePageSize (size) {
+      this.$emit('changePageSize', size)
+    }
+  },
 }
 </script>
 

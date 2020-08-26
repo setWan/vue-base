@@ -18,13 +18,49 @@
         <el-button type="text"
                    @click="initData(true)">默认</el-button>
       </div>
-      <el-checkbox-group ref="checkContent"
-                         v-model="checkList"
+      <el-checkbox-group v-model="checkList"
                          @change="handleCheckItemChange">
-        <el-dropdown-item v-for="item in copyHeader"
-                          :key="'head_' + item.label">
-          <el-checkbox :label="item.prop">{{ item.label }}</el-checkbox>
-        </el-dropdown-item>
+        <p v-if="fixedLeft"
+           class="drag-title">固定在左侧</p>
+        <div ref="dragLeft">
+          <el-dropdown-item class="drag"
+                            v-for="item in leftHeader"
+                            :key="'head_' + item.key">
+            <el-checkbox :label="item.prop">{{ item.label }}</el-checkbox>
+            <i class="el-icon-minus"
+               @click="changeFixed(item)"></i>
+            <i class="el-icon-bottom-right"
+               @click="changeFixed(item, 'right')"></i>
+          </el-dropdown-item>
+        </div>
+
+        <p v-if="fixedLeft || fixedRight"
+           class="drag-title">不固定</p>
+        <div ref="dragMiddle">
+          <el-dropdown-item class="drag"
+                            v-for="item in middleHeader"
+                            :key="'head_' + item.key">
+            <el-checkbox :label="item.prop">{{ item.label }}</el-checkbox>
+            <i class="el-icon-bottom-left"
+               @click="changeFixed(item, 'left')"></i>
+            <i class="el-icon-bottom-right"
+               @click="changeFixed(item, 'right')"></i>
+          </el-dropdown-item>
+        </div>
+
+        <p v-if="fixedRight"
+           class="drag-title">固定在右侧</p>
+        <div ref="dragRight">
+          <el-dropdown-item class="drag"
+                            v-for="item in rightHeader"
+                            :key="'head_' + item.key">
+            <el-checkbox :label="item.prop">{{ item.label }}</el-checkbox>
+            <i class="el-icon-bottom-left"
+               @click="changeFixed(item, 'left')"></i>
+            <i class="el-icon-minus"
+               @click="changeFixed(item)"></i>
+          </el-dropdown-item>
+        </div>
       </el-checkbox-group>
     </el-dropdown-menu>
   </el-dropdown>
@@ -65,9 +101,14 @@ export default {
     return {
       checkAll: true, // 是否全选
       isIndeterminate: false, // 全选按钮的第三个状态（减号
-      sortable: null, // 拖动排序插件
+      dragMiddle: null, // 拖动排序插件
+      dragLeft: null,
+      dragRight: null,
       checkList: [], // 选中的header列表
-      copyHeader: [] // header列表
+      finalHeader: [], // header列表
+      middleHeader: [],
+      leftHeader: [],
+      rightHeader: []
     }
   },
   watch: {
@@ -78,44 +119,107 @@ export default {
       this.handHeaderList()
     }
   },
+  computed: {
+    /**
+     * 是否有固定左侧
+     */
+    fixedLeft () {
+      return this.leftHeader.length > 0
+    },
+    /**
+     * 是否有固定右侧
+     */
+    fixedRight () {
+      return this.rightHeader.length > 0
+    }
+  },
   /**
    * dom挂载完毕，初始化数据
    */
   mounted () {
     this.$nextTick(_ => {
-      this.initHeader()
+      this.initData()
     })
   },
   methods: {
     /**
-     * 初始化
+     * 初始化数据
+     * e => 用于判断是否是点击初始化按钮
      */
-    async initHeader () {
-      // 初始化数据
-      this.initData()
-
-      let $dom = await this.getDom(this.$refs.checkContent)
-      let el = $dom.$el
-      // 初始化拖动
-      // let el2 = this.$refs.checkContent.$el
-      // let el = document.querySelector('.checkContent')
-      this.sortable = Sortable.create(el, {
-        animation: 250,
-        setData: function (dataTransfer) {
-          dataTransfer.setData('Text', '') // 火狐浏览器bug
-        },
-        onEnd: ({ oldIndex, newIndex }) => {
-          // 交换header数据
-          this.copyHeader.splice(newIndex, 0, ...this.copyHeader.splice(oldIndex, 1))
-
-          // 改变key，解决表头不更新BUG
-          this.copyHeader[oldIndex].key = +new Date() + this.copyHeader[oldIndex].prop
-          this.copyHeader[newIndex].key = +new Date() + this.copyHeader[newIndex].prop
-
-          // 刷新表头数据
-          this.handHeaderList()
-        }
+    initData (e) {
+      // 拷贝原始表头数据
+      this.finalHeader = this.origHeader.map(item => {
+        item.key = +new Date() + item.prop
+        item.fixed = ''
+        return item
       })
+
+      // 初始化表头
+      this.initHeaderData()
+
+      // 判断选中缓存数据还是默认数据
+      if (this.initSelect && this.initSelect.length > 0 && !e) {
+        this.checkList = this.initSelect.map(item => item.prop)
+      } else {
+        this.checkList = this.finalHeader.map(item => item.prop)
+      }
+
+      // 判断全选复选框状态
+      let checkLen = this.checkList.length
+      let headerLen = this.finalHeader.length
+      this.checkAll = checkLen === headerLen
+      this.isIndeterminate = checkLen > 0 && checkLen < headerLen
+
+      this.$emit('update:newHeader', this.finalHeader)
+    },
+    /**
+     * 初始化拖动
+     *  -文档 http://www.sortablejs.com/
+     */
+    async initSortable () {
+      let arr = [
+        { domName: 'dragMiddle', listName: 'middleHeader' },
+        { domName: 'dragLeft', listName: 'leftHeader' },
+        { domName: 'dragRight', listName: 'rightHeader' }
+      ]
+      while (arr.length > 0) {
+        let { domName, listName } = arr.shift()
+        let dragDom = await this.getDom(this.$refs[domName])
+        this[domName] && this[domName].destroy()
+
+        this[domName] = Sortable.create(dragDom, {
+          draggable: '.drag',
+          handle: '.drag',
+          animation: 250,
+          setData: function (dataTransfer) {
+            dataTransfer.setData('Text', '') // 火狐浏览器bug
+          },
+          onEnd: ({ oldIndex, newIndex }) => {
+            this.changeSortHeader(this[listName][oldIndex], this[listName][newIndex])
+          }
+        })
+      }
+    },
+    /**
+     * 拖动结束回调，处理数据
+     */
+    changeSortHeader (oldData, newData) {
+      let oldIndex = this.finalHeader.findIndex(item => item.prop === oldData.prop)
+      let newIndex = this.finalHeader.findIndex(item => item.prop === newData.prop)
+
+      // 交换header数据
+      let dateTime = +new Date()
+      this.finalHeader[newIndex] = {
+        ...oldData,
+        key: dateTime + oldData.prop
+      }
+      this.finalHeader[oldIndex] = {
+        ...newData,
+        key: dateTime + newData.prop
+      }
+
+      // 刷新表头数据
+      this.handHeaderList()
     },
     /**
      * 获取Dom元素
@@ -131,35 +235,30 @@ export default {
       })
     },
     /**
-     * 初始化数据
-     * e => 用于判断是否是点击初始化按钮
+     * 初始化表头
      */
-    initData (e) {
-      // 拷贝原始表头数据
-      this.copyHeader = this.origHeader.map(item => {
-        item.key = +new Date() + item.prop
-        return item
+    initHeaderData () {
+      this.middleHeader = []
+      this.leftHeader = []
+      this.rightHeader = []
+
+      this.finalHeader.forEach(item => {
+        if (item.fixed === 'left') {
+          this.leftHeader.push(item)
+        } else if (item.fixed === 'right') {
+          this.rightHeader.push(item)
+        } else {
+          this.middleHeader.push(item)
+        }
       })
-      // 判断选中缓存数据还是默认数据
-      if (this.initSelect && this.initSelect.length > 0 && !e) {
-        this.checkList = this.initSelect.map(item => item.prop)
-      } else {
-        this.checkList = this.copyHeader.map(item => item.prop)
-      }
 
-      // 判断全选复选框状态
-      let checkLen = this.checkList.length
-      let headerLen = this.copyHeader.length
-      this.checkAll = checkLen === headerLen
-      this.isIndeterminate = checkLen > 0 && checkLen < headerLen
-
-      this.$emit('update:newHeader', this.copyHeader)
+      this.initSortable()
     },
     /**
      * 修改表头数据
      */
     handHeaderList () {
-      let list = this.copyHeader.filter(item => this.checkList.indexOf(item.prop) >= 0)
+      let list = this.finalHeader.filter(item => this.checkList.indexOf(item.prop) >= 0)
       this.$emit('update:newHeader', list)
     },
     /**
@@ -167,7 +266,7 @@ export default {
      * 点击全选按钮时候全选数据或取消全选
      */
     handleCheckAllChange (val) {
-      this.checkList = val ? this.copyHeader.map(item => item.prop) : []
+      this.checkList = val ? this.finalHeader.map(item => item.prop) : []
       this.isIndeterminate = false
     },
     /**
@@ -176,8 +275,20 @@ export default {
      */
     handleCheckItemChange (arr) {
       let checkedCount = arr.length
-      this.checkAll = checkedCount === this.copyHeader.length
-      this.isIndeterminate = checkedCount > 0 && checkedCount < this.copyHeader.length
+      this.checkAll = checkedCount === this.finalHeader.length
+      this.isIndeterminate = checkedCount > 0 && checkedCount < this.finalHeader.length
+    },
+    /**
+     * 改变固定位置
+     */
+    changeFixed (row, type) {
+      let index = this.finalHeader.findIndex(item => item.prop === row.prop)
+      this.finalHeader[index].fixed = type || ''
+      this.finalHeader[index].key = +new Date() + row.prop
+
+      this.initHeaderData()
+      // 刷新表头数据
+      this.handHeaderList()
     }
   }
 }
@@ -203,6 +314,14 @@ export default {
       margin-right: 4px;
       display: inline-block;
     }
+    .el-button {
+      margin-left: 16px;
+    }
+  }
+  .drag-title {
+    font-size: 14px;
+    padding-left: 36px;
+    color: rgba(0, 0, 0, 0.45);
   }
   li .el-checkbox:before {
     content: '::';

@@ -58,7 +58,7 @@ export default {
   },
   methods: {
     handleSizeChange (size) {
-      this.$emit('changePageIndex', size)
+      this.$emit('changePageSize', size)
     },
     handleCurrentChange (page) {
       this.$emit('changePage', page)

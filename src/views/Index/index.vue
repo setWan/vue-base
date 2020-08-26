@@ -56,19 +56,27 @@
       <public-table :data-list="dataList"
                     :head-list="headList"
                     :has-oper="true"
-                    :page="1"
-                    :page-size="10"
-                    :page-count="100">
-        <template v-slot:operationRight>
-          <el-button type="text">123</el-button>
+                    :page="searchData.page"
+                    :page-size="searchData.pageSize"
+                    :page-count="searchData.pageCount"
+                    @changePage="changePage"
+                    @changePageSize="changePageSize">
+        <template v-slot:operationLeft>
+          <el-button type="text">左按钮</el-button>
         </template>
-        <template v-slot:tableOperation>
-          <el-table-column label="操作"
-                           width="100">
-            <el-button type="text">删除</el-button>
-          </el-table-column>
+        <template v-slot:operationRight>
+          <el-button type="text">右按钮</el-button>
+        </template>
+        <template v-slot:tableOperation="scoped">
+          <el-button type="text"
+                     @click="delData(scoped.row)">删除</el-button>
         </template>
       </public-table>
+    </div>
+    <div>
+      <el-button type="button"
+                 @click="stopRandom">点击</el-button>
+      {{ballNumber}}
     </div>
   </div>
 </template>
@@ -81,14 +89,27 @@ export default {
     return {
       activeName: 'second',
       ipAddres: '',
+      searchData: {
+        page: 1,
+        pageSize: 10,
+        pageCount: 100
+      },
       dataList: [
         {
           name: 'miss',
           phone: '1221',
-          address: '北京市'
+          address: '北京市',
+          address1: '北京市1',
+          address2: '北京市2'
         }
       ],
       headList: [
+        {
+          prop: 'index',
+          label: '序号',
+          type: 'index',
+          indexAccum: true
+        },
         {
           prop: 'name',
           label: '用户名'
@@ -100,8 +121,23 @@ export default {
         {
           prop: 'address',
           label: '地址'
+        },
+        {
+          prop: 'address1',
+          label: '地址1'
+        },
+        {
+          prop: 'address2',
+          label: '地址2'
+        },
+        {
+          prop: 'opertion',
+          label: '操作',
+          width: 100
         }
-      ]
+      ],
+      ballNumber: '',
+      timer: null
     };
   },
   components: {
@@ -111,7 +147,52 @@ export default {
     console.log('当前的环境是', process.env.NODE_ENV)
   },
   methods: {
+    delData (row) {
+      console.log('del--->', row)
+    },
+    changePage (page) {
+      this.searchData = {
+        ...this.searchData,
+        page
+      }
+    },
+    changePageSize (pageSize) {
+      this.searchData = {
+        ...this.searchData,
+        page: 1,
+        pageSize
+      }
+    },
 
+
+    startRandom () {
+      this.timer = setInterval(_ => {
+        this.randomNumber()
+      }, 100)
+    },
+    stopRandom () {
+      if (this.timer) {
+        clearInterval(this.timer)
+        this.timer = null
+      } else {
+        this.startRandom()
+      }
+    },
+    randomNumber () {
+      let arr = []
+      while (arr.length < 6) {
+        let ball = this.getBall(33)
+        if (!arr.includes(ball)) {
+          arr.push(ball)
+        }
+      }
+      let blueBall = this.getBall(16)
+      arr.sort((a, b) => a - b)
+      this.ballNumber = arr.join(',') + '  ' + blueBall
+    },
+    getBall (max) {
+      return Math.ceil(Math.random() * max)
+    }
   }
 }
 </script>
