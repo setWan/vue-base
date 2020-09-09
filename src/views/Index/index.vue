@@ -78,11 +78,18 @@
                  @click="stopRandom">点击</el-button>
       {{ballNumber}}
     </div>
+    <div>
+      <el-input v-model="socketPath"
+                class="socketInput"></el-input>
+      <el-button @click="socketConnect">连接</el-button>
+    </div>
   </div>
 </template>
 
 <script>
 import themeColor from '@/components/ThemePicker'
+import socketIo from '@/utils/socket'
+
 export default {
   name: 'Index',
   data () {
@@ -137,7 +144,8 @@ export default {
         }
       ],
       ballNumber: '',
-      timer: null
+      timer: null,
+      socketPath: 'https://www.aituoli.com'
     };
   },
   components: {
@@ -147,6 +155,15 @@ export default {
     console.log('当前的环境是', process.env.NODE_ENV)
   },
   methods: {
+    /**
+     * socket.io
+     */
+    socketConnect () {
+      socketIo({
+        prefix: this.socketPath
+      })
+      console.log(this.socket, this.socketPath)
+    },
     delData (row) {
       console.log('del--->', row)
     },
@@ -163,8 +180,9 @@ export default {
         pageSize
       }
     },
-
-
+    /**
+     * 随机生成彩票
+     */
     startRandom () {
       this.timer = setInterval(_ => {
         this.randomNumber()
@@ -198,4 +216,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.socketInput {
+  width: 200px;
+}
 </style>
