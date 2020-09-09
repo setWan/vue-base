@@ -1,6 +1,8 @@
 # manage
 
 基于 VUE + VUEX + VUE Router + Element UI的一套基础框架
+
+demo ----> www.aituoli.com
 ```
 - public  打包输出目录
 - src
