@@ -112,6 +112,11 @@ export default {
       default: 0
     }
   },
+  watch: {
+    headList (val) {
+      console.log('--headList------->', val)
+    }
+  },
   data () {
     return {
       newHeader: [],

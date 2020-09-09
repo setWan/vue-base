@@ -150,7 +150,7 @@ export default {
       // 拷贝原始表头数据
       this.finalHeader = this.origHeader.map(item => {
         item.key = +new Date() + item.prop
-        item.fixed = ''
+        item.fixed = false
         return item
       })
 
@@ -283,7 +283,7 @@ export default {
      */
     changeFixed (row, type) {
       let index = this.finalHeader.findIndex(item => item.prop === row.prop)
-      this.finalHeader[index].fixed = type || ''
+      this.finalHeader[index].fixed = type || false
       this.finalHeader[index].key = +new Date() + row.prop
 
       this.initHeaderData()
